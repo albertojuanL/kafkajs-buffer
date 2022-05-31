@@ -1,0 +1,37 @@
+{
+  "name": "kafkajs-buffer",
+  "version": "1.0.0-beta.0",
+  "description": "Util for kafkajs to buffer messages and send them in batches, inspired by node-rdkafka",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "kafka",
+    "kafkajs",
+    "producer",
+    "buffer",
+    "batch"
+  ],
+  "author": "Alberto Juan Busquiel",
+  "license": "ISC",
+  "dependencies": {
+    "kafkajs": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "env-cmd": "^10.1.0",
+    "eslint": "^8.15.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jest": "^26.2.2",
+    "eslint-plugin-prettier": "^4.0.0",
+    "ts-node": "^10.7.0",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.6.4"
+  }
+}
