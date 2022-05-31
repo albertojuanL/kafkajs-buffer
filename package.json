@@ -16,6 +16,10 @@
   ],
   "author": "Alberto Juan Busquiel",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/albertojuanL/kafkajs-buffer.git"
+  },
   "peerDependencies": {
     "kafkajs": "^2.0.1"
   },
