@@ -16,11 +16,12 @@
   ],
   "author": "Alberto Juan Busquiel",
   "license": "ISC",
-  "dependencies": {
+  "peerDependencies": {
     "kafkajs": "^2.0.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.35",
+    "kafkajs": "^2.0.1",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
     "@typescript-eslint/parser": "^5.25.0",
     "env-cmd": "^10.1.0",
