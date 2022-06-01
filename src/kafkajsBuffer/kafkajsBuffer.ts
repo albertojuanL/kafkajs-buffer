@@ -145,7 +145,7 @@ export class KafkajsBuffer<T = {}> {
 
   private async flushAfterSending(resolve: () => void) {
     if (this.sending) {
-      this.options.debug("Waiting for a previous send to finish");
+      this.options.debug("Waiting for a previous sending to finish");
       setImmediate(async () => {
         this.flushAfterSending(resolve);
       });

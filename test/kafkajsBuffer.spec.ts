@@ -16,11 +16,18 @@ const kafka = new Kafka({
   brokers: [],
 });
 
+process.env.KAFKAJS_NO_PARTITIONER_WARNING = "1";
+
+function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 describe("KafkajsBuffer", () => {
   beforeAll(() => {});
 
   it("Options are correctly assigned", async () => {
-    const kafka = new Kafka({ brokers: [] });
     const producer = kafka.producer();
     const kafkajsBuffer = new KafkajsBuffer(producer, {
       queueBufferingMaxMessages: 999,
@@ -107,7 +114,7 @@ describe("KafkajsBuffer", () => {
 
     kafkajsBuffer.startAutoPolling(10);
 
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await sleep(10);
 
     kafkajsBuffer.stopAutoPolling();
 
@@ -139,5 +146,100 @@ describe("KafkajsBuffer", () => {
       key: MESSAGE_TO_SEND.key,
       info: undefined,
     });
+  });
+
+  it("Checks batch delivery callback", async () => {
+    let deliveredMessagesCount = 0;
+
+    const producer = kafka.producer();
+
+    producer.send = async (_: ProducerRecord) => [{} as RecordMetadata];
+
+    const kafkajsBuffer = new KafkajsBuffer(producer, {
+      onBatchDelivered: (messages: IDeliveredMessage[]) => {
+        deliveredMessagesCount = messages.length;
+      },
+      qeueuBufferingMaxMs: 0,
+    });
+
+    kafkajsBuffer.push({
+      topic: "test",
+      messages: [MESSAGE_TO_SEND, MESSAGE_TO_SEND],
+    });
+
+    kafkajsBuffer.poll();
+    await sleep(0);
+
+    expect(deliveredMessagesCount).toEqual(2);
+  });
+
+  it("Messages are sent in batches according to the configuration", async () => {
+    let batchesCount: number = 0;
+
+    const producer = kafka.producer();
+
+    producer.send = async (_: ProducerRecord) => {
+      batchesCount++;
+      return [{} as RecordMetadata];
+    };
+
+    const kafkajsBuffer = new KafkajsBuffer(producer, {
+      batchNumMessages: 2,
+    });
+
+    kafkajsBuffer.push({
+      topic: "test",
+      messages: [...Array(6)].map(() => MESSAGE_TO_SEND),
+    });
+
+    await kafkajsBuffer.flush();
+
+    expect(batchesCount).toEqual(3);
+  });
+
+  it("Flush waits for pending sending ends", async () => {
+    const MESSAGE_EXTRA = {
+      key: "extra",
+      value: "extra",
+    };
+
+    let sendingCount: number = 0;
+    let messagesSent: Message[] = [];
+    const producer = kafka.producer();
+
+    producer.send = async (producer: ProducerRecord) => {
+      sendingCount += 1;
+      if (sendingCount > 1) {
+        throw new Error("Send called in parallel");
+      }
+      if (producer.messages.length != 1) {
+        throw new Error("Size of each sent must be 1");
+      }
+      await sleep(10);
+
+      messagesSent.push(producer.messages[0]);
+      sendingCount -= 1;
+      return [{} as RecordMetadata];
+    };
+
+    const kafkajsBuffer = new KafkajsBuffer(producer, {
+      qeueuBufferingMaxMs: 0,
+    });
+
+    kafkajsBuffer.push({
+      topic: "test",
+      messages: [MESSAGE_TO_SEND],
+    });
+
+    kafkajsBuffer.poll();
+
+    kafkajsBuffer.push({
+      topic: "test",
+      messages: [MESSAGE_EXTRA],
+    });
+
+    await kafkajsBuffer.flush();
+
+    expect(messagesSent).toEqual([MESSAGE_TO_SEND, MESSAGE_EXTRA]);
   });
 });
