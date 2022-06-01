@@ -66,7 +66,7 @@ You can also push messages for different topics.
   ]);
 ```
 
-To avoid reach the max buffer size and send the messages you can programatically request to send the buffer. Depending on the time from the last sending, the messages in the buffer queue will be sent immediatelly or postponed.
+You can programatically request to send the buffer messages to kafka. This avoids reaching the max buffer size. Depending on the time from the last sending, the messages in the buffer queue will be sent immediately or postponed.
 
 ```typescript
 producerBuffer.poll();
@@ -82,7 +82,7 @@ Don't forget stop the autopolling before your program execution ends.
 producerBuffer.stopAutoPolling();
 ```
 
-To receive the confirmation when the messages are published to kafka use the callback functions 'onBatchDelivered' and 'onMessageDelivered'.
+To receive the confirmation when the messages are published to kafka use the callback functions 'onBatchDelivered' and/or 'onMessageDelivered'.
 ```typescript
 // This function is called everytime a message is successfully sent to Kafka
 const onMessageDelivered = (messageDelivered) => {
