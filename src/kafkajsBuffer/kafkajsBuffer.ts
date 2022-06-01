@@ -23,7 +23,6 @@ export interface ISendMessagesQueueOptions {
   queueBufferingMaxMessages?: number;
   qeueuBufferingMaxMs?: number;
   batchNumMessages?: number;
-  batchSendMaxRetries?: number;
   onMessageDelivered?: <T = {}>(message: IDeliveredMessage<T>) => void;
   onBatchDelivered?: <T = {}>(messages: IDeliveredMessage<T>[]) => void;
   messageAcks?: -1 | 0 | 1;
@@ -36,13 +35,12 @@ const defaultOptions = {
   queueBufferingMaxMessages: 100000,
   qeueuBufferingMaxMs: 1000,
   batchNumMessages: 1000,
-  batchSendMaxRetries: 3,
   onMessageDelivered: () => {},
   onBatchDelivered: () => {},
   messageAcks: -1 as -1 | 0 | 1,
-  responseTimeout: 1000,
-  messageCompression: CompressionTypes.GZIP,
-  debug: console.debug,
+  responseTimeout: 30000,
+  messageCompression: CompressionTypes.None,
+  debug: () => {},
 };
 
 /**
@@ -55,7 +53,6 @@ export class KafkajsBuffer<T = {}> {
     queueBufferingMaxMessages: number;
     qeueuBufferingMaxMs: number;
     batchNumMessages: number;
-    batchSendMaxRetries: number;
     onMessageDelivered: (messageRecord: IDeliveredMessage<T>) => void;
     onBatchDelivered: (messagesDelivered: IDeliveredMessage<T>[]) => void;
     messageAcks: -1 | 0 | 1;
