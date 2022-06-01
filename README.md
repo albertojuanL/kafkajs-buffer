@@ -11,7 +11,7 @@ You can install the kafkajs-buffer module like any other module:
 npm install kafkajs-buffer
 ```
 
-To use the module, you must require and instance it
+To use the module, you must require and instance it.
 
 ```typescript
 import { KafkajsBuffer} from "kafkajs-buffer";
@@ -21,24 +21,24 @@ import { KafkajsBuffer} from "kafkajs-buffer";
 const producerBuffer = new KafkajsBuffer(producer, options);
 ```
 
-To send the messages push them in the buffer, similar the way you would send it using Kafkajs
+To send the messages push them in the buffer, similar the way you would send it using Kafkajs.
 ```typescript
   producerBuffer.push({
-    'topic-1',
+    "topic-1",
     messages: [
       {
-        key: 'm1',
-        value: 'message 1',
+        key: "m1",
+        value: "message 1",
       },
       {
-        key: 'm2',
-        value: 'message 2',
+        key: "m2",
+        value: "message 2",
       },
     ],
   });
 ```
 
-You can also push messages for different topics
+You can also push messages for different topics.
 ```typescript
   producerBuffer.push([
     {
@@ -72,15 +72,52 @@ To avoid reach the max buffer size and send the messages you can programatically
 producerBuffer.poll();
 ```
 
-In addition you can set the producer to poll on an interval
+In addition you can set the producer to poll on an interval.
 ```typescript
 producerBuffer.startAutoPolling(100);
 ```
 
-Don't forget stop the autopolling before your program execution ends
+Don't forget stop the autopolling before your program execution ends.
 ```typescript
 producerBuffer.stopAutoPolling();
 ```
+
+To receive the confirmation when the messages are published to kafka use the callback functions 'onBatchDelivered' and 'onMessageDelivered'.
+```typescript
+// This function is called everytime a message is successfully sent to Kafka
+const onMessageDelivered = (messageDelivered) => {
+  messagesDeliveredCount += 1;
+}
+```
+
+```typescript
+// This function is called everytime a batch is successfully sent to Kafka
+const onBatchDelivered = (messagesDelivered: IDeliveredMessage[]) => {
+  messagesDeliveredCount += messagesDelivered.length;
+}
+```
+
+In addition you can add extra information to the messages that won't be sent to kafka but will be received in the callback function.
+```typescript
+type Info = {
+  timestamp: number;
+};
+
+const producerBuffer = new KafkajsBuffer<Info>(producer, options);
+
+const messageToSend: IMessageWithInfo<Info> = {
+  key: "1",
+  value: "message value",
+  info: {
+    timestamp: Date.now(),
+  }
+};
+
+const onMessageDelivered = (messageDelivered: IDeliveredMessage<Info>) => {
+  console.log(`Message created at ${messageDelivered.info?.timestamp} was delivered to kafka`);
+}
+```
+
 
 To greacefully shutdonwn your process you must call and await 'flush'. It will wait until a possible onprogress sending ends and/or will send any pending message still in the buffer.
 
