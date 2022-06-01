@@ -49,7 +49,7 @@ const defaultOptions = {
 export class KafkajsBuffer<T = {}> {
   private producer: Producer;
   private hrTime: [number, number];
-  private options: {
+  options: {
     queueBufferingMaxMessages: number;
     qeueuBufferingMaxMs: number;
     batchNumMessages: number;
