@@ -1,7 +1,7 @@
 {
   "name": "kafkajs-buffer",
-  "version": "1.0.0-beta.6",
-  "description": "Util for kafkajs to buffer messages and send them in batches, inspired by node-rdkafka",
+  "version": "1.0.0-beta.7",
+  "description": "Plugin for kafkajs to buffer messages and send them in batches, inspired by node-rdkafka",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

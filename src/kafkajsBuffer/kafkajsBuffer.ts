@@ -43,6 +43,13 @@ const defaultOptions = {
   debug: () => {},
 };
 
+// Next event loop iteration
+function nextTick() {
+  return new Promise((resolve) => {
+    setImmediate(resolve);
+  });
+}
+
 /**
  * KafkaJS producer util that buffers messages and sends them in batches.
  */
@@ -91,7 +98,8 @@ export class KafkajsBuffer<T = {}> {
       this.sending = true;
       this.sendQueue()
         .catch((err) => {
-          console.error(err);
+          this.options.debug(err);
+          throw err;
         })
         .finally(() => (this.sending = false));
     }
@@ -138,22 +146,19 @@ export class KafkajsBuffer<T = {}> {
   }
 
   async flush() {
-    await new Promise<void>(async (resolve) => {
-      await this.flushAfterSending(resolve);
-    });
-  }
-
-  private async flushAfterSending(resolve: () => void) {
-    if (this.sending) {
+    while (this.sending) {
       this.options.debug("Waiting for a previous sending to finish");
-      setImmediate(async () => {
-        this.flushAfterSending(resolve);
-      });
-    } else {
+      await nextTick();
+    }
+
+    try {
       this.sending = true;
       await this.sendQueue();
+    } catch (err) {
+      this.options.debug(err);
+      throw err;
+    } finally {
       this.sending = false;
-      resolve();
     }
   }
 
