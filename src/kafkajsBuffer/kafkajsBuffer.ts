@@ -1,5 +1,9 @@
 import { CompressionTypes, Producer, TopicMessages, Message } from "kafkajs";
 import { getElapsedTimeInMs } from "../utils";
+import {
+  AutoPollingAlreadyStartedError,
+  BufferMaxSizeExceeded,
+} from "./errors";
 
 interface MessagesByTopic<T> {
   [topic: string]: IMessageWithInfo<T>[];
@@ -25,6 +29,7 @@ export interface ISendMessagesQueueOptions {
   batchNumMessages?: number;
   onMessageDelivered?: <T = {}>(message: IDeliveredMessage<T>) => void;
   onBatchDelivered?: <T = {}>(messages: IDeliveredMessage<T>[]) => void;
+  onSendError?: (error: Error) => void;
   messageAcks?: -1 | 0 | 1;
   responseTimeout?: number;
   messageCompression?: CompressionTypes;
@@ -37,6 +42,7 @@ const defaultOptions = {
   batchNumMessages: 1000,
   onMessageDelivered: () => {},
   onBatchDelivered: () => {},
+  onSendError: () => {},
   messageAcks: -1 as -1 | 0 | 1,
   responseTimeout: 30000,
   messageCompression: CompressionTypes.None,
@@ -62,6 +68,7 @@ export class KafkajsBuffer<T = {}> {
     batchNumMessages: number;
     onMessageDelivered: (messageRecord: IDeliveredMessage<T>) => void;
     onBatchDelivered: (messagesDelivered: IDeliveredMessage<T>[]) => void;
+    onSendError: (error: Error) => void;
     messageAcks: -1 | 0 | 1;
     responseTimeout: number;
     messageCompression: CompressionTypes;
@@ -91,7 +98,7 @@ export class KafkajsBuffer<T = {}> {
     const elapsed = getElapsedTimeInMs(this.hrTime);
     if (
       !this.sending &&
-      (this.messagesByTopicCount > this.options.queueBufferingMaxMessages ||
+      (this.messagesByTopicCount >= this.options.queueBufferingMaxMessages ||
         elapsed >= this.options.qeueuBufferingMaxMs)
     ) {
       this.hrTime = process.hrtime();
@@ -99,7 +106,7 @@ export class KafkajsBuffer<T = {}> {
       this.sendQueue()
         .catch((err) => {
           this.options.debug(err);
-          throw err;
+          this.options.onSendError(err);
         })
         .finally(() => (this.sending = false));
     }
@@ -107,7 +114,7 @@ export class KafkajsBuffer<T = {}> {
 
   startAutoPolling(ms: number) {
     if (this.interval) {
-      throw Error("Auto polling already started");
+      throw new AutoPollingAlreadyStartedError();
     }
 
     this.interval = setInterval(() => {
@@ -138,7 +145,7 @@ export class KafkajsBuffer<T = {}> {
         this.options.debug("Max queue size until now: ", this.maxQueueLength);
       }
       if (this.messagesByTopicCount > this.options.queueBufferingMaxMessages) {
-        throw Error("Queue max size reached");
+        throw new BufferMaxSizeExceeded();
       }
 
       this.messagesByTopic[element.topic].push(...element.messages);

@@ -144,6 +144,7 @@ const options = {
   queueBufferingMaxMessages: 100000, // Max number of messages allowed in the buffer. When more messages are pushed it will throw an error.
   onMessageDelivered: () => {}, // Callback confirmation when a message is delivered to kafka.
   onBatchDeliverd: () => {}, // Callback confirmation when a batch is delivered to kafka.
+  onSendError: (err) => {}, // Callback with error when the messages are tried to be sent after a poll and fail
   messageAcks: -1, // Control the number of required acks (https://kafka.js.org/docs/producing)
   responseTimeout: 30000, // The time to await a response in ms (https://kafka.js.org/docs/producing)
   messageCompression: CompressionTypes.None, // Compression codec (https://kafka.js.org/docs/producing)

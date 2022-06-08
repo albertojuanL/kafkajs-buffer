@@ -6,6 +6,10 @@ import {
   ProducerRecord,
   Message,
 } from "kafkajs";
+import {
+  AutoPollingAlreadyStartedError,
+  BufferMaxSizeExceeded,
+} from "../src/kafkajsBuffer/errors";
 
 const MESSAGE_TO_SEND = {
   key: "key",
@@ -241,5 +245,94 @@ describe("KafkajsBuffer", () => {
     await kafkajsBuffer.flush();
 
     expect(messagesSent).toEqual([MESSAGE_TO_SEND, MESSAGE_EXTRA]);
+  });
+
+  it("Checks BufferMaxSizeExceeded is thrown when the buffer queue max size is exceeded", () => {
+    const producer = kafka.producer();
+
+    producer.send = async (_: ProducerRecord) => [{} as RecordMetadata];
+
+    const kafkajsBuffer = new KafkajsBuffer(producer, {
+      queueBufferingMaxMessages: 1,
+    });
+
+    kafkajsBuffer.push({
+      topic: "test",
+      messages: [MESSAGE_TO_SEND],
+    });
+
+    const pushExtraMessage = () =>
+      kafkajsBuffer.push({
+        topic: "test",
+        messages: [MESSAGE_TO_SEND],
+      });
+
+    expect(pushExtraMessage).toThrowError(BufferMaxSizeExceeded);
+  });
+
+  it("Checks AutoPollingAlreadyStartedError is thrown when the autopolling is already started", () => {
+    const producer = kafka.producer();
+
+    producer.send = async (_: ProducerRecord) => [{} as RecordMetadata];
+
+    const kafkajsBuffer = new KafkajsBuffer(producer);
+
+    kafkajsBuffer.startAutoPolling(10);
+
+    const setAutopollingSecondTime = () => kafkajsBuffer.startAutoPolling(10);
+
+    expect(setAutopollingSecondTime).toThrowError(
+      AutoPollingAlreadyStartedError
+    );
+
+    kafkajsBuffer.stopAutoPolling();
+  });
+
+  it("Checks error is propagated when there's an error sending message", () => {
+    const producer = kafka.producer();
+
+    producer.send = async (_: ProducerRecord) => {
+      throw new Error("Error sending message");
+    };
+
+    const kafkajsBuffer = new KafkajsBuffer(producer);
+
+    kafkajsBuffer.push({
+      topic: "test",
+      messages: [MESSAGE_TO_SEND],
+    });
+
+    const flush = kafkajsBuffer.flush();
+
+    expect(flush).rejects.toThrowError("Error sending message");
+  });
+
+  it("Checks onSendError is called when there's an error sending message using poll", async () => {
+    let error: Error | undefined = undefined;
+
+    const producer = kafka.producer();
+
+    producer.send = async (_: ProducerRecord) => {
+      console.log("send!");
+      throw new Error("Error sending message");
+    };
+
+    const kafkajsBuffer = new KafkajsBuffer(producer, {
+      qeueuBufferingMaxMs: 0,
+      onSendError: (err) => {
+        error = err;
+      },
+    });
+
+    kafkajsBuffer.push({
+      topic: "test",
+      messages: [MESSAGE_TO_SEND],
+    });
+
+    kafkajsBuffer.poll();
+
+    await sleep(0);
+
+    expect(error).toBeDefined();
   });
 });
