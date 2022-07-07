@@ -126,21 +126,32 @@ describe("KafkajsBuffer", () => {
   });
 
   it("Checks message delivery callback", async () => {
-    let deliveredMessage: IDeliveredMessage | undefined = undefined;
+    let deliveredMessage: IDeliveredMessage<{ code: string }> | undefined =
+      undefined;
 
     const producer = kafka.producer();
 
     producer.send = async (_: ProducerRecord) => [{} as RecordMetadata];
 
-    const kafkajsBuffer = new KafkajsBuffer(producer, {
-      onMessageDelivered: (message: IDeliveredMessage) => {
+    const kafkajsBuffer = new KafkajsBuffer<{ code: string }>(producer, {
+      onMessageDelivered: (message: IDeliveredMessage<{ code: string }>) => {
         deliveredMessage = message;
+
+        expect(message.info?.code).toBe("code");
       },
     });
 
     kafkajsBuffer.push({
       topic: "test",
-      messages: [MESSAGE_TO_SEND],
+      messages: [
+        {
+          key: "key",
+          value: "value",
+          info: {
+            code: "code",
+          },
+        },
+      ],
     });
 
     await kafkajsBuffer.flush();
@@ -148,7 +159,7 @@ describe("KafkajsBuffer", () => {
     expect(deliveredMessage).toEqual({
       topic: "test",
       key: MESSAGE_TO_SEND.key,
-      info: undefined,
+      info: { code: "code" },
     });
   });
 

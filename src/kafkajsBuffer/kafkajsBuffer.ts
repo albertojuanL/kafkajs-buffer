@@ -9,7 +9,7 @@ interface MessagesByTopic<T> {
   [topic: string]: IMessageWithInfo<T>[];
 }
 
-export interface IMessageWithInfo<T = {}> extends Message {
+export interface IMessageWithInfo<T = void> extends Message {
   info?: T;
 }
 
@@ -17,18 +17,18 @@ export interface ITopicMessagesWithInfo<T> extends TopicMessages {
   messages: IMessageWithInfo<T>[];
 }
 
-export interface IDeliveredMessage<T = {}> {
+export interface IDeliveredMessage<T = void> {
   topic: string;
   key?: string | Buffer | null;
   info?: T;
 }
 
-export interface ISendMessagesQueueOptions {
+export interface ISendMessagesQueueOptions<T = void> {
   queueBufferingMaxMessages?: number;
   qeueuBufferingMaxMs?: number;
   batchNumMessages?: number;
-  onMessageDelivered?: <T = {}>(message: IDeliveredMessage<T>) => void;
-  onBatchDelivered?: <T = {}>(messages: IDeliveredMessage<T>[]) => void;
+  onMessageDelivered?: (message: IDeliveredMessage<T>) => void;
+  onBatchDelivered?: (messages: IDeliveredMessage<T>[]) => void;
   onSendError?: (error: Error) => void;
   messageAcks?: -1 | 0 | 1;
   responseTimeout?: number;
@@ -59,7 +59,7 @@ function nextTick() {
 /**
  * KafkaJS producer util that buffers messages and sends them in batches.
  */
-export class KafkajsBuffer<T = {}> {
+export class KafkajsBuffer<T = void> {
   private producer: Producer;
   private hrTime: [number, number];
   options: {
@@ -81,7 +81,7 @@ export class KafkajsBuffer<T = {}> {
   private maxQueueLength: number;
   private interval: NodeJS.Timeout;
 
-  constructor(producer: Producer, options: ISendMessagesQueueOptions = {}) {
+  constructor(producer: Producer, options: ISendMessagesQueueOptions<T> = {}) {
     this.producer = producer;
     this.options = { ...defaultOptions, ...options };
     this.messagesByTopic = {};
