@@ -50,11 +50,7 @@ const defaultOptions = {
 };
 
 // Next event loop iteration
-function nextTick() {
-  return new Promise((resolve) => {
-    setImmediate(resolve);
-  });
-}
+const nextTick = () => new Promise((resolve) => setImmediate(resolve));
 
 /**
  * KafkaJS producer util that buffers messages and sends them in batches.
