@@ -13,8 +13,7 @@ When publishing messages to Kafka, it's crucial to control the size and the mome
 
 - Splitting into optimal batches the number of messages to send to Kafka. Kafka doesn't accept messages heavier than a prefixed size. Kafkajs-buffer allows setting the size of the batches to fit the Kafka configured size.
 
-Batching in blocks of the proper size and sending them to Kafka will lead to specific logic in our code to postpone the sending of messages, group them and send later based on a reached max messages buffer length or a given time. Kafkajs-buffer solves this problem transparently.
-
+Batching in blocks of the proper size and sending them to Kafka usually leads to complex logic in our code. To delay, group, and send messages based on a given size or time is not an easy task. To keep the code cleaner and simplify, Kafkajs-buffer solves this problem behind the scenes.
 # Usage
 
 The installation of Kafkajs-buffer is like any module:
