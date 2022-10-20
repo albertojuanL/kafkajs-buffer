@@ -80,7 +80,7 @@ producerBuffer.push([
 ]);
 ```
 
-You can programmatically request to send the buffer messages to Kafka. It avoids reaching the max buffer size. Depending on the time from the last sending, the messages in the buffer queue will be sent immediately or postponed.
+You can programmatically request to send the buffer messages to Kafka. It avoids reaching the max buffer size. Depending on the time from the last sending, the messages in the buffer queue will be sent immediately or postponed unit it's called again.
 
 ```typescript
 producerBuffer.poll();
