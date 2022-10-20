@@ -4,7 +4,7 @@ Plugin for [kafkajs](https://github.com/tulios/kafkajs) to buffer messages and s
 
 # Overview
 
-kafkajs-buffer adds queue/buffer capabilities to a kafkajs producer to buffer the messages before sending. It splits the buffer in batches and sends the messages to Kafka, optmizing the number of requests and hidding all this complexity. Delivered messages will be notified in a callback function avoiding the need of awaiting and improving streaming times.
+kafkajs-buffer adds queue/buffer capabilities to a kafkajs producer. It allows buffering output messages. It splits the buffer into batches and sends them to Kafka, optimizing the number of requests. Delivered messages will be notified in a callback function, avoiding the need to await the requests and improving streaming times.
 
 # Usage
 
@@ -77,7 +77,7 @@ You can programatically request to send the buffer messages to kafka. This avoid
 producerBuffer.poll();
 ```
 
-In addition you can set the producer to poll on an interval.
+In addition you can set the producer to poll automatically on an interval.
 
 ```typescript
 producerBuffer.startAutoPolling(100);
