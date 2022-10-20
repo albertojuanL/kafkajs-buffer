@@ -8,11 +8,12 @@ kafkajs-buffer adds queue/buffer capabilities to a kafkajs producer. It allows b
 
 # Why to use it
 When we publish messages to Kafka, it's crucial to control the size and the moment of the requests we send. This library solves two common problems:
-Grouping in batches is essential. We can't send messages one by one, it would produce overload if we send them simultaneously, and it will be prolonged if we send them one by one, waiting for Kafka knowledge (roundtrip).
+
+- Grouping in batches is essential. We can't send messages one by one, it would produce overload if we send them simultaneously, and it will be prolonged if we send them one by one, waiting for Kafka knowledge (roundtrip).
 
 - Split into optimal batches the number of messages to send to Kafka. Kafka doesn't accept messages heavier than a prefix size, depending on the configuration. Kafkajs-buffer allows setting the size of the batches to fit the Kafka configured size.
 
-- Batching in blocks of the proper size and sending them to Kafka will lead to specific logic in our code to postpone the sending of messages, group them and send later based on a reached max messages buffer length or a given time. Kafkajs-buffer solves this problem transparently.
+Batching in blocks of the proper size and sending them to Kafka will lead to specific logic in our code to postpone the sending of messages, group them and send later based on a reached max messages buffer length or a given time. Kafkajs-buffer solves this problem transparently.
 
 # Usage
 
