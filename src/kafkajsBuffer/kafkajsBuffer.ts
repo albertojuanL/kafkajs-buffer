@@ -99,6 +99,8 @@ export class KafkajsBuffer<T = void> {
     ) {
       this.hrTime = process.hrtime();
       this.sending = true;
+
+      // No needed to await, if it's already sending the poll is ignored.
       this.sendQueue()
         .catch((err) => {
           this.options.debug(err);
