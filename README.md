@@ -156,7 +156,7 @@ await producerBuffer.flush();
 const options = {
   batchNumMessages: 1000, // The buffer is sent to Kafka splitted in batches of this size.
   queueBufferingMaxMs: 1000, // Time the messages are buffered before sending. Polling actions will trigger the sending after this time.
-  queueBufferingMaxMessages: 100000, // Max number of messages allowed in the buffer. When more messages are pushed it will throw an error.
+  queueBufferingMaxMessages: 100000, // Max number of messages allowed in the buffer. When more messages are pushed it will throw the error 'BufferMaxSizeExceeded'.
   onMessageDelivered: () => {}, // Callback confirmation when a message is delivered to Kafka.
   onBatchDeliverd: () => {}, // Callback confirmation when a batch is delivered to Kafka.
   onSendError: (err) => {}, // Callback with error when the messages are tried to be sent after a poll and fail
@@ -165,3 +165,9 @@ const options = {
   messageCompression: CompressionTypes.None, // Compression codec (https://kafka.js.org/docs/producing)
 };
 ```
+# Common Errors
+A frequent issue is that the exception 'BufferMaxSizeExceeded' is thrown. It happens when the number of messages enqueued in the buffer exceeds the 'queueBufferingMaxMessages' number. The problem is the buffer enqueues messages faster than dequeues them. To fix it, check the options below:
+- Call poll() more frequently: The buffer is only sent and emptied when we call to poll (explicitly or using autopolling). We'll get an exception if we don't call it before the buffer is full.
+- Decrease the autopolling time value: Same as the previous one. 
+- Decrease the queueBufferingMaxMs: Decreasing the max time we wait before sending the messages and emptying the buffer. It could impact the performance.
+- Increase the batchNumMessages: Allowing more messages in the buffer is more difficult to reach the limit but it has an impact in the process memory you have to consider.
