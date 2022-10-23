@@ -114,7 +114,8 @@ const onBatchDelivered = (messagesDelivered: IDeliveredMessage[]) => {
 };
 ```
 
-In addition you can add extra information to the messages. That information won't be sent to kafka but will be received in the callback function. It's very useful to set information you will need to identify the original request or message for which the produced message was created. A common scenario is a service that consumes messages to produce new ones. Here, we can commit the consumed messages with the guarantee they have been processed.
+In addition you can add extra information to the messages using the field 'info'. That information won't be sent to kafka but will be received in the callback function. It's very useful to set information you will need to identify the original request or message for which the produced message was created. A common scenario is a service that consumes messages to produce new ones. Here, we can commit the consumed messages with the guarantee they have been processed.
+Notice you can set the type for your extra info.
 
 ```typescript
 type Info = {
