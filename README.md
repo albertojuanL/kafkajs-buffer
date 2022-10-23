@@ -33,7 +33,7 @@ import { KafkajsBuffer } from "kafkajs-buffer";
 const producerBuffer = new KafkajsBuffer(producer, options);
 ```
 
-To send the messages, push them into the buffer. Similar to how you would send them using Kafkajs. Basically, replacing Kafkajs "send(...)" by KafkajsBuffer "push(...)" calls.
+To send the messages, push them into the buffer. Similar to how you would send them using Kafkajs. Basically, replacing Kafkajs "send(...)" with KafkajsBuffer "push(...)" calls.
 
 ```typescript
   producerBuffer.push({
@@ -161,7 +161,7 @@ const options = {
   onBatchDeliverd: () => {}, // Callback confirmation when a batch is delivered to Kafka.
   onSendError: (err) => {}, // Callback with error when the messages are tried to be sent after a poll and fail
   messageAcks: -1, // Control the number of required acks (https://kafka.js.org/docs/producing)
-  responseTimeout: 30000, // The time to wait a from response from Kafka, in ms (https://kafka.js.org/docs/producing)
+  responseTimeout: 30000, // The time to wait a response from Kafka, in ms (https://kafka.js.org/docs/producing)
   messageCompression: CompressionTypes.None, // Compression codec (https://kafka.js.org/docs/producing)
 };
 ```
