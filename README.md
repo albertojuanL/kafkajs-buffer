@@ -167,7 +167,7 @@ const options = {
 ```
 # Common Errors
 A frequent issue is that the exception 'BufferMaxSizeExceeded' is thrown. It happens when the number of messages enqueued in the buffer exceeds the 'queueBufferingMaxMessages' number. The problem is the buffer enqueues messages faster than dequeues them. To fix it, check the options below:
-- Call poll() more frequently: The buffer is only sent and emptied when we call to poll (explicitly or using autopolling). We'll get an exception if we don't call it before the buffer is full.
-- Decrease the autopolling time value: Same as the previous one. 
-- Decrease the queueBufferingMaxMs: Decreasing the max time we wait before sending the messages and emptying the buffer. It could impact the performance.
-- Increase the batchNumMessages: Allowing more messages in the buffer is more difficult to reach the limit but it has an impact in the process memory you have to consider.
+- **Call poll() more frequently**: The buffer is only sent and emptied when we call to poll (explicitly or using autopolling). We'll get an exception if we don't call it before the buffer is full.
+- **Decrease the autopolling time value**: Same as the previous one. 
+- **Decrease the queueBufferingMaxMs**: Decreasing the waiting time before sending the buffer. It makes reaching the max buffer size more difficult but could impact the performance.
+- **Increase the batchNumMessages**: The more messages capacity in the buffer, the more difficult to reach the limit, but it has an impact on the process memory you need to consider.
