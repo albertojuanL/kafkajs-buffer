@@ -92,13 +92,13 @@ In addition or as an alternative, you can set the producer to poll automatically
 producerBuffer.startAutoPolling(100);
 ```
 
-Don't forget stop the autopolling before your program execution ends.
+Don't forget to stop the autopolling before your program execution ends.
 
 ```typescript
 producerBuffer.stopAutoPolling();
 ```
 
-To receive the response when the messages are published to kafka, use the callback functions 'onBatchDelivered' and/or 'onMessageDelivered'. You can received handle the responses by message or by batch.
+To receive the response when the messages are published to kafka, use the callback functions 'onBatchDelivered' and/or 'onMessageDelivered'. You can handle the responses by message or by batch.
 
 ```typescript
 // This function is called everytime a message is successfully sent to Kafka
@@ -114,14 +114,12 @@ const onBatchDelivered = (messagesDelivered: IDeliveredMessage[]) => {
 };
 ```
 
-In addition you can add extra information to the messages. That information won't be sent to kafka but will be received in the callback function. It's very useful to set information you will need to identify the original request or message for which the produced message was created. A common scenario is a service that consumes messages to produce another ones. Here, we can commit the consumed message with the guarantee that has been processed.
+In addition you can add extra information to the messages. That information won't be sent to kafka but will be received in the callback function. It's very useful to set information you will need to identify the original request or message for which the produced message was created. A common scenario is a service that consumes messages to produce new ones. Here, we can commit the consumed messages with the guarantee they have been processed.
 
 ```typescript
 type Info = {
   timestamp: number;
 };
-
-const producerBuffer = new KafkajsBuffer<Info>(producer, options);
 
 const messageToSend: IMessageWithInfo<Info> = {
   key: "1",
@@ -136,6 +134,13 @@ const onMessageDelivered = (messageDelivered: IDeliveredMessage<Info>) => {
     `Message created at ${messageDelivered.info?.timestamp} was delivered to kafka`
   );
 };
+
+const options = {
+  onMessageDelivered,
+  // Another options ...
+}
+
+const producerBuffer = new KafkajsBuffer<Info>(producer, options);
 ```
 
 To gracefully shut down your process, you must firstly flush the buffer. It will send any remaining message in its internal queue. Remember to wait until the buffer is flushed.
