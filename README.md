@@ -4,25 +4,26 @@ Plugin for [kafkajs](https://github.com/tulios/kafkajs) to buffer messages and s
 
 # Overview
 
-kafkajs-buffer adds queue/buffer capabilities to a kafkajs producer. It enqueues messages until a specific size is reached or a given amount of time has passed. It also splits the buffer into smaller batches when it's too big to be sent in a single one. Delivered messages will be notified in a callback function.
+Kafkajs-buffer adds queue/buffer capabilities to a kafkajs producer. It enqueues messages until a specific size is reached or a given amount of time has passed. It also splits the buffer into smaller batches when it's too big to be sent in a single one. Delivered messages will be notified in a callback function.
 
 # Why to use it
-When publishing messages to Kafka, it's crucial to control the size and the moment of the requests to be sent. This library solves two common issues:
+When publishing messages to Kafka, it's crucial to control the size and frequency of the requests. This library solves two common issues:
 
-- Grouping in batches: It's essential. We can't send messages one by one, it would produce overload if we send them simultaneously, and it will be prolonged if we send them one by one, waiting for Kafka to acknowledge (roundtrip).
+- Buffering before sending: It's essential. Sending messages one by one or even in unmanaged batches leads to overload and poor perforamnce in high traffic services. One of the reasons is the time until Kafka acknowledge is received (roundtrip). 
 
-- Splitting into optimal batches the number of messages to send to Kafka. Kafka doesn't accept messages heavier than a prefixed size. Kafkajs-buffer allows setting the size of the batches to fit the Kafka configured size.
+- Request size. By default Kafka max request is 1Mb. Kafkajs-buffer allows setting the length of the batches to fit the Kafka configured size. It splits the buffer into batches with the configured number of messages and sends them to Kafka. 
 
-Batching in blocks of the proper size and sending them to Kafka usually leads to complex logic in our code. To delay, group, and send messages based on a given size or time is not an easy task. To keep the code cleaner and simplify, Kafkajs-buffer solves this problem behind the scenes.
+Batching in blocks of the proper size and sending them to Kafka usually leads to complex logic in our code. To delay, group, and send messages based on a given size or time is not an easy task.  Kafkajs-buffer solves this problem in background to keep the code clean and simple.
+
 # Usage
 
-The installation of Kafkajs-buffer is like any module:
+The installation of Kafkajs-buffer is like any other module:
 
 ```
 npm install kafkajs-buffer
 ```
 
-To use the module, you must require and create of instance of it.
+To use the module, just require and create an instance of it.
 
 ```typescript
 import { KafkajsBuffer } from "kafkajs-buffer";
@@ -32,7 +33,7 @@ import { KafkajsBuffer } from "kafkajs-buffer";
 const producerBuffer = new KafkajsBuffer(producer, options);
 ```
 
-To send the messages, push them in the buffer, specifying the messages and the topic to publish. Similar to how you would send them using Kafkajs. Basically, replacing kafkajs "send(...)" by kafkajsBuffer "push(...)" calls.
+To send the messages, push them in the buffer. Similar to how you would send them using Kafkajs. Basically, replacing kafkajs "send(...)" by kafkajsBuffer "push(...)" calls.
 
 ```typescript
   producerBuffer.push({
@@ -50,7 +51,7 @@ To send the messages, push them in the buffer, specifying the messages and the t
   });
 ```
 
-You can also push messages for different topics.
+It's possible to push messages to different topics.
 
 ```typescript
 producerBuffer.push([
@@ -79,13 +80,13 @@ producerBuffer.push([
 ]);
 ```
 
-You can programmatically request to send the buffer messages to Kafka. It avoids reaching the max buffer size. Depending on the time from the last sending, the messages in the buffer queue will be sent immediately or postponed unit it's called again.
+You can programmatically request to send the buffer messages to Kafka. Depending on the time passed from the last sending, the messages in the buffer will be sent immediately or postponed until "poll()" it's called again.
 
 ```typescript
 producerBuffer.poll();
 ```
 
-In addition, you can set the producer to poll automatically on an interval.
+In addition or as an alternative, you can set the producer to poll automatically on an interval. Remember, Nodejs is single thread and depending on your service and the duration of your synchronous code, the polling interval could be longer than the time configured. 
 
 ```typescript
 producerBuffer.startAutoPolling(100);
@@ -97,7 +98,7 @@ Don't forget stop the autopolling before your program execution ends.
 producerBuffer.stopAutoPolling();
 ```
 
-To receive the confirmation when the messages are published to kafka, use the callback functions 'onBatchDelivered' and/or 'onMessageDelivered'.
+To receive the response when the messages are published to kafka, use the callback functions 'onBatchDelivered' and/or 'onMessageDelivered'. You can received handle the responses by message or by batch.
 
 ```typescript
 // This function is called everytime a message is successfully sent to Kafka
@@ -113,7 +114,7 @@ const onBatchDelivered = (messagesDelivered: IDeliveredMessage[]) => {
 };
 ```
 
-In addition you can add extra information to the messages. That information won't be sent to kafka but will be received in the callback function.
+In addition you can add extra information to the messages. That information won't be sent to kafka but will be received in the callback function. It's very useful to set information you will need to identify the original request or message for which the produced message was created. A common scenario is a service that consumes messages to produce another ones. Here, we can commit the consumed message with the guarantee that has been processed.
 
 ```typescript
 type Info = {
@@ -137,7 +138,7 @@ const onMessageDelivered = (messageDelivered: IDeliveredMessage<Info>) => {
 };
 ```
 
-To gracefully shut down your process, you must first flush the buffer. It will send any remaining message in its internal queue.
+To gracefully shut down your process, you must firstly flush the buffer. It will send any remaining message in its internal queue. Remember to wait until the buffer is flushed.
 
 ```typescript
 await producerBuffer.flush();
@@ -154,7 +155,7 @@ const options = {
   onBatchDeliverd: () => {}, // Callback confirmation when a batch is delivered to Kafka.
   onSendError: (err) => {}, // Callback with error when the messages are tried to be sent after a poll and fail
   messageAcks: -1, // Control the number of required acks (https://kafka.js.org/docs/producing)
-  responseTimeout: 30000, // The time to wait a response in ms (https://kafka.js.org/docs/producing)
+  responseTimeout: 30000, // The time to wait a from response from Kafka, in ms (https://kafka.js.org/docs/producing)
   messageCompression: CompressionTypes.None, // Compression codec (https://kafka.js.org/docs/producing)
 };
 ```
