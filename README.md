@@ -158,7 +158,7 @@ const options = {
   queueBufferingMaxMs: 1000, // Time the messages are buffered before sending. Polling actions will trigger the sending after this time.
   queueBufferingMaxMessages: 100000, // Max number of messages allowed in the buffer. When more messages are pushed it will throw the error 'BufferMaxSizeExceeded'.
   onMessageDelivered: () => {}, // Callback confirmation when a message is delivered to Kafka.
-  onBatchDeliverd: () => {}, // Callback confirmation when a batch is delivered to Kafka.
+  onBatchDelivered: () => {}, // Callback confirmation when a batch is delivered to Kafka.
   onSendError: (err) => {}, // Callback with error when the messages are tried to be sent after a poll and fail
   messageAcks: -1, // Control the number of required acks (https://kafka.js.org/docs/producing)
   responseTimeout: 30000, // The time to wait a response from Kafka, in ms (https://kafka.js.org/docs/producing)
